@@ -1,6 +1,9 @@
 #  I Heard You Like License
 Расширение для браузера, которое восстанавливает работу shikimori
 
+Пикрелейтед
+![Пикрелейтед](https://i.imgflip.com/2fa348.jpg)
+
 ## Установка
 1. Скачиваем архив [отсюда](https://github.com/SebyakinAndrei/IHeardYouLikeLicense/releases)
 2. Распаковываем его в любую удобную папку
