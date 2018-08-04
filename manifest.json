@@ -1,0 +1,40 @@
+{
+    "manifest_version": 2,
+    "name": "I Heard you like license",
+    "description": "Возвращает shikimori к жизни",
+    "version": "0.1",
+    "icons": {"64": "logo.png"},
+    "permissions": [
+        "proxy",
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "tabs",
+        "proxy",
+        "cookies",
+        "<all_urls>",
+        "*://play.shikimori.org/*",
+        "*://shikimori.org/*"
+    ],
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+    "content_scripts": [{
+        "matches": [
+            "*://play.shikimori.org/*",
+            "*://shikimori.org/*"
+        ],
+        "js": [
+            "jquery.js",
+            "justice.js"
+        ],
+        "run_at": "document_end"
+    }],
+    "background": {
+        "scripts": [
+            "jquery.js",
+            "background.js"
+        ]
+    },
+    "browser_action": {
+        "default_title": "I Heard you like license"
+    }
+}
