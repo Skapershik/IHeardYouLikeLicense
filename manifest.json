@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "I Heard you like license",
     "description": "Возвращает shikimori к жизни",
-    "version": "0.1",
+    "version": "0.5",
     "icons": {"64": "logo.png"},
     "permissions": [
         "proxy",
