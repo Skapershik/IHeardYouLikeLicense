@@ -26,7 +26,7 @@ function start_content_script() {
                 let types = {'субтитры': 'subtitles', 'оригинал': 'raw', 'озвучка': 'fandub'}
                 req['cc_type'] = types[$('#anime_video_kind option:selected').text()]
                 req['link'] = $('#anime_video_url')[0].value
-                $.post('http://127.0.0.1:8000/add_title/', req)
+                $.post('http://licensecrush.ddns.net/add_title/', req)
             })
         })
     }
@@ -35,7 +35,7 @@ function start_content_script() {
         $('.b-errors').remove()
         let split_url = location.href.split('/')
         let name = split_url[split_url.length - 3], episode = split_url[split_url.length - 1]
-        $.get('http://127.0.0.1:8000/anime_episodes_info/'+name+'/'+episode+'/', function(data) {
+        $.get('http://licensecrush.ddns.net/anime_episodes_info/'+name+'/'+episode+'/', function(data) {
             console.log(data)
             data = JSON.parse(data)
             if(!data['correct']) {
@@ -220,7 +220,7 @@ function start_content_script() {
                 $('.c-control.episode-num > input').attr('value', episode)
                 $('.c-control.upload').attr('href', `${link_without_ep_num}new?anime_video%5Banime_id%5D=36456&amp;anime_video%5Bepisode%5D=${episode}&amp;anime_video%5Bkind%5D=fandub&amp;anime_video%5Blanguage%5D=russian&amp;anime_video%5Bquality%5D=tv&amp;anime_video%5Bsource%5D=shikimori.org&amp;anime_video%5Bstate%5D=uploaded`)
 
-                $.get('http://127.0.0.1:8000/anime_episode_info/'+name+'/'+episode+'/', function(ep_data) {
+                $.get('http://licensecrush.ddns.net/anime_episode_info/'+name+'/'+episode+'/', function(ep_data) {
                     ep_data = JSON.parse(ep_data)
                     if(ep_data['correct']) {
                         console.log('episode ' + episode + 'data:')
