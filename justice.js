@@ -28,18 +28,29 @@ function start_content_script() {
                 req['link'] = $('#anime_video_url')[0].value
                 console.log('request:')
                 console.log(req)
-                chrome.extension.sendMessage(JSON.stringify({'action': 'post', 'link': 'http://licensecrush.ddns.net/add_title/', 'data': req}), function(resp) {})
+                chrome.extension.sendMessage(JSON.stringify({'action': 'post', 'link': 'http://licensecrush.ddns.net/add_title/', 'data': req}), function(resp) {
+                    resp = JSON.parse(resp)
+                    console.log('resp:', resp)
+                    if(resp['msg'] !== undefined) {
+                        alert(resp['msg'])
+                    }
+                })
                 //$.post('http://licensecrush.ddns.net/add_title/', req)
             })
         })
     }
     else if(location.href.includes('video_online') && $('.b-errors > .subheadline').length && ($('.b-errors > .subheadline').text() == 'Просмотр недоступен')) {
         console.log('Licensed anime video page!')
+        if(location.href.endsWith('/video_online')) {
+            location.href = location.href + '/1'
+        }
+        else if(location.href.endsWith('/video_online/')) {
+            location.href = location.href + '1'
+        }
         $('.b-errors').remove()
         let split_url = location.href.split('/')
         let name = split_url[split_url.length - 3], episode = split_url[split_url.length - 1]
         chrome.extension.sendMessage(JSON.stringify({'action': 'get', 'link': 'http://licensecrush.ddns.net/anime_episodes_info/'+name+'/'+episode+'/'}), function(data) {
-        //$.get('http://licensecrush.ddns.net/anime_episodes_info/'+name+'/'+episode+'/', function(data) {
             console.log(data)
             data = JSON.parse(data)
             if(!data['correct']) {
@@ -283,7 +294,11 @@ function start_content_script() {
                             <span class="episode-hostings">${data[0][i][1]}</span>
                         </a>
                     </div>`))
-                $(`#episode-${data[0][i][2]}`).click(function() {goto_episode(data[0][i][2])})
+                $(`#episode-${data[0][i][2]}`).click(function() {
+                    $('div.c-anime_video_episodes > .b-video_variant.active').each(function() {$(this).removeClass('active')})
+                    goto_episode(data[0][i][2])
+                    $(this).parent().addClass('active')
+                })
             }
             update_ep_info(data[1])
             $('.video-variant-group.active :first-child').addClass('active')

@@ -8,6 +8,21 @@ function httpGet(theUrl, callback) {
     xmlHttp.send(null);
 }
 
+function httpPost(url, data, callback) {
+    var http = new XMLHttpRequest();
+    var params = $.param(data)
+
+    http.onreadystatechange = function() {//Call a function when the state changes.
+        if(http.readyState == 4 && http.status == 200) {
+            callback(http.responseText);
+        }
+    }
+    http.open('POST', url, false);
+    //Send the proper header information along with the request
+    http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    http.send(params);
+}
+
 function updatePageAction(tabId) {
     console.log('update page called!')
     chrome.tabs.sendRequest(tabId, {is_content_script: true}, function(response) {
@@ -32,14 +47,18 @@ chrome.runtime.onMessage.addListener(
         if(request.action !== undefined) {
             if(request['action'] === 'get') {
                 httpGet(request['link'], function(data) {
-                    console.log('data:', request['link'])
-                    console.log('sending resp:', data)
+                    console.log('data (get):', request['link'])
+                    console.log('get resp:', data)
                     sendResponse(data)
                 })
             }
             else if(request['action'] === 'post') {
-                $.post(request['link'], request['data'])
-                sendResponse('ok')
+                httpPost(request['link'], request['data'], function(data) {
+                    console.log('data (post):', request['link'])
+                    console.log('post resp:', data)
+                    sendResponse(data)
+                })
+                //$.post(request['link'], request['data'], function(resp) {sendResponse(resp)})
             }
         }
   });

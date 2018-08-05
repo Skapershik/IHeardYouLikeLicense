@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "I Heard you like license",
     "description": "Возвращает shikimori к жизни",
-    "version": "0.5",
+    "version": "0.8",
     "icons": {"64": "logo.png"},
     "permissions": [
         "proxy",
@@ -10,7 +10,6 @@
         "webRequest",
         "webRequestBlocking",
         "tabs",
-        "proxy",
         "cookies",
         "<all_urls>",
         "*://play.shikimori.org/*",
