@@ -71,7 +71,7 @@ function player_template(episode, video_link, link_without_ep_num, data) {
             </div>`
 }
 
-function empty_player_template(episode, video_link, link_without_ep_num, data) {
+function empty_player_template(episode, link_without_ep_num, data) {
     return `<div class="player-container">
         <div class="b-video_player">
             <div class="player-area">
@@ -226,7 +226,7 @@ function start_content_script() {
                 player_container = player_template(episode, video_link, link_without_ep_num, data)
             }
             else {
-                player_container = empty_player_template(episode, video_link, link_without_ep_num, data)
+                player_container = empty_player_template(episode, link_without_ep_num, data)
             }
             $('.l-content').prepend(player_container)
             $('.c-column.c-control.report').click(function() {$('.cc-anime_video_report-new').show()})
