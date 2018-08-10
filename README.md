@@ -19,7 +19,7 @@
 6. Готово! В правом верхнем углу должна появиться иконка расширения
 
 ### Установка для Яндекс браузера и Opera
-1. Скачиваем .crx [отсюда](https://github.com/SebyakinAndrei/IHeardYouLikeLicense/releases
+1. Скачиваем .crx [отсюда](https://github.com/SebyakinAndrei/IHeardYouLikeLicense/releases)
 2. Находим вкладку с расширениями в своем браузере
 3. Перетаскиваем скачанный файл туда
 4. Готово!
