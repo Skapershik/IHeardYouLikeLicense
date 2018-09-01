@@ -285,6 +285,9 @@ function start_content_script() {
                 $('.c-control.episode-num > input').attr('value', episode)
                 $('.c-control.upload').attr('href', upload_link_template(link_without_ep_num, episode))
 
+                // set new html title
+                document.title = document.title.replace(/\d+/i, episode)
+
                 chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'http://licensecrush.ddns.net/anime_episode_info/'+name+'/'+episode+'/'}), function(ep_data) {
                 //$.get('http://licensecrush.ddns.net/anime_episode_info/'+name+'/'+episode+'/', function(ep_data) {
                     ep_data = JSON.parse(ep_data)
