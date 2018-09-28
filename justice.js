@@ -343,6 +343,18 @@ function start_content_script() {
     }
 
 }
+function start_watching_form(user_id,title_name) {
+    return `
+    <form action="/api/v2/user_rates" data-method="POST" data-remote="true" data-type="json">
+    <input type="hidden" name="frontend" value="1">
+    <input type="hidden" name="user_rate[user_id]" value="${user_id}">
+    <input type="hidden" name="user_rate[target_id]" value="${parseInt(title_name)}">
+    <input type="hidden" name="user_rate[target_type]" value="Anime">
+    <input type="hidden" name="user_rate[status]" value="planned">
+    <input type="submit" id="click" hidden="">
+    </form>`
+
+}
 /*Основная функция, отвечающая за работу кнопки, передаем имя тайтла и выбранный эпизод */
 function update_watch_button(title_name, current_episode) {
     console.log(title_name)
@@ -352,20 +364,34 @@ function update_watch_button(title_name, current_episode) {
         Нас интересуют id и episodes
         */
         var user_rate = JSON.parse(data).user_rate
+        console.log(user_rate)
         /*
+        Если пришел пустой user_rate, значит тайтла у пользователя не было в списках,
+        необходимо с имитировать кнопку "Добавить в список", для этого пришлось прибегнуть к костылю,
+        ибо OAuth2 со своими токенами
+        */
+        if(user_rate==null){
+           var user_id = JSON.parse($('body.p-anime_videos').attr('data-user')).id
+           $('body.p-anime_videos').append(start_watching_form(user_id,title_name))
+           $('#click').click();
+           update_watch_button(title_name,current_episode);
+        }else{
+            /*
         Так как обновление количества просмотренных эпизодов сделано на основе псевдо patch запроса, нужно проверить,
         чтобы серия, которую смотрит пользователь была не просмотрена ранее.
         */
-        if(user_rate.episodes<current_episode){
-            $('div.c-column.c-control.increment-user_rate').removeClass('watched')
-            $('div.c-column.c-control.increment-user_rate').on('click', function () {
-                watched(current_episode,user_rate.id,title_name);
-            })
+            if(user_rate.episodes<current_episode){
+                $('div.c-column.c-control.increment-user_rate').removeClass('watched')
+                $('div.c-column.c-control.increment-user_rate').on('click', function () {
+                    watched(current_episode,user_rate.id,title_name);
+                })
+            }
+            else{
+                $('div.c-column.c-control.increment-user_rate').addClass('watched')
+                $('div.c-column.c-control.increment-user_rate').off('click')
+            }
         }
-        else{
-            $('div.c-column.c-control.increment-user_rate').addClass('watched')
-            $('div.c-column.c-control.increment-user_rate').off('click')
-        }
+
     });
 }
 function watched(watched_ep, id, title_name){
@@ -409,6 +435,7 @@ function watched(watched_ep, id, title_name){
             }
         })
     });
+
     /*
      POST запрос необходимо делать непосредственно со страницы сайта, чтобы был корректный origin заголовок,
      иначе токены просто не подойдут
@@ -428,8 +455,8 @@ function watched(watched_ep, id, title_name){
         http.setRequestHeader('x-requested-with','XMLHttpRequest')
         http.send(params);
     }
-
 }
+
 
 $(document).ready(function() {
     chrome.runtime.onMessage.addListener(function(req, sender, sendResponse) {
