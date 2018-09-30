@@ -376,9 +376,11 @@ function update_watch_button(title_name, current_episode) {
         */
         if(user_rate==null){
            var user_id = JSON.parse($('body.p-anime_videos').attr('data-user')).id
-           $('body.p-anime_videos').append(start_watching_form(user_id,title_name))
-           $('#click').click();
-           update_watch_button(title_name,current_episode);
+            if(user_id!=null){
+                $('body.p-anime_videos').append(start_watching_form(user_id,title_name))
+                $('#click').click();
+                update_watch_button(title_name,current_episode);
+            }
         }else{
             /*
         Так как обновление количества просмотренных эпизодов сделано на основе псевдо patch запроса, нужно проверить,
