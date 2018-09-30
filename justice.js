@@ -188,7 +188,7 @@ function start_content_script() {
                 console.log('request:')
                 console.log(req)
                 chrome.runtime.sendMessage(JSON.stringify({'action': 'post', 'link': 'http://licensecrush.ddns.net/add_title/', 'data': req}), function(resp) {
-                    //resp = JSON.parse(resp)
+                    resp = JSON.parse(resp)
                     console.log('resp:', resp)
                     if(resp['msg'] !== undefined) {
                         alert(resp['msg'])
