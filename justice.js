@@ -205,6 +205,9 @@ function start_content_script() {
         else if(location.href.endsWith('/video_online/')) {
             location.href = location.href + '1'
         }
+        else if(location.href.endsWith('/video_online/0')) {
+            location.href = location.href.substr(0, location.href.length - 1) + '1'
+        }
         $('.b-errors').remove()
         let split_url = location.href.split('/')
         let name = split_url[split_url.length - 3], episode = split_url[split_url.length - 1]
