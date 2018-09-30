@@ -49,6 +49,11 @@ function player_template(episode, video_link, link_without_ep_num, data) {
                         <div class="c-column">
                             <div class="cc-options">
                                 <div class="c-buttons cc-3a">
+                                    <div class="c-column c-control increment-user_rate">
+                                        <div class="icon"></div>
+                                        <div class="label">Просмотрено</div>
+                                        <div id="result" hidden></div>
+                                    </div>
                                     <div class="c-column c-control show-options">
                                         <div class="icon"></div>
                                         <div class="label">Опции</div>
@@ -296,6 +301,9 @@ function start_content_script() {
                         console.log(ep_data['data'])
                         update_ep_info(ep_data['data'])
                     }
+
+                    update_watch_button(name,episode);
+
                 })
             }
 
@@ -327,10 +335,128 @@ function start_content_script() {
             }
             update_ep_info(data[1])
             $('.video-variant-group.active :first-child').addClass('active')
+
+            update_watch_button(name,episode);
+
         });
+
     }
 
 }
+function start_watching_form(user_id,title_name) {
+    return `
+    <form action="/api/v2/user_rates" data-method="POST" data-remote="true" data-type="json">
+    <input type="hidden" name="frontend" value="1">
+    <input type="hidden" name="user_rate[user_id]" value="${user_id}">
+    <input type="hidden" name="user_rate[target_id]" value="${parseInt(title_name)}">
+    <input type="hidden" name="user_rate[target_type]" value="Anime">
+    <input type="hidden" name="user_rate[status]" value="planned">
+    <input type="submit" id="click" hidden="">
+    </form>`
+
+}
+/*Основная функция, отвечающая за работу кнопки, передаем имя тайтла и выбранный эпизод */
+function update_watch_button(title_name, current_episode) {
+    console.log(title_name)
+    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/api/animes/'+parseInt(title_name)+'/'}), function(data) {
+        /*
+        Получаем похожий "user_rate":{"id":43643249,"score":0,"status":"watching","text":"","episodes":10,"chapters":null,"volumes":null,"text_html":"","rewatches":0}
+        Нас интересуют id и episodes
+        */
+        var user_rate = JSON.parse(data).user_rate
+        console.log(user_rate)
+        /*
+        Если пришел пустой user_rate, значит тайтла у пользователя не было в списках,
+        необходимо с имитировать кнопку "Добавить в список", для этого пришлось прибегнуть к костылю,
+        ибо OAuth2 со своими токенами
+        */
+        if(user_rate==null){
+           var user_id = JSON.parse($('body.p-anime_videos').attr('data-user')).id
+           $('body.p-anime_videos').append(start_watching_form(user_id,title_name))
+           $('#click').click();
+           update_watch_button(title_name,current_episode);
+        }else{
+            /*
+        Так как обновление количества просмотренных эпизодов сделано на основе псевдо patch запроса, нужно проверить,
+        чтобы серия, которую смотрит пользователь была не просмотрена ранее.
+        */
+            if(user_rate.episodes<current_episode){
+                $('div.c-column.c-control.increment-user_rate').removeClass('watched')
+                $('div.c-column.c-control.increment-user_rate').on('click', function () {
+                    watched(current_episode,user_rate.id,title_name);
+                })
+            }
+            else{
+                $('div.c-column.c-control.increment-user_rate').addClass('watched')
+                $('div.c-column.c-control.increment-user_rate').off('click')
+            }
+        }
+
+    });
+}
+function watched(watched_ep, id, title_name){
+    /*----------------Не рабочий вариант!-----------------*/
+    /*    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
+            $('#result').html(data)
+            var token = $('#result [name="authenticity_token"]').attr('value');
+            var csrf_token = $('#result [name="csrf-token"]').attr('content');
+            console.log(token, csrf_token)
+            var _data = {}
+            _data['utf8']='✓';
+            _data['_method'] = 'patch';
+            _data['authenticity_token'] = token;
+            _data['user_rate[episodes]'] = watched_ep;
+            chrome.runtime.sendMessage(JSON.stringify({'action': 'watch', 'link': 'https://shikimori.org/api/v2/user_rates/'+id+'', 'data':_data, 'token':csrf_token}), function(data) {
+                console.log(data);
+            })
+        })*/
+
+    /*-----------------Рабочий вариант!--------------------*/
+    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
+        /*
+        Результат запроса приходит битый, вытащить из него authenticity token у меня не вышло,
+        поэтому выводим его в невидимый блок, чтобы движок браузера выправил документ, затем уже
+        получаем необходимые токены
+         */
+        $('#result').html(data)
+        var token = $('#result [name="authenticity_token"]').attr('value');
+        var csrf_token = $('#result [name="csrf-token"]').attr('content');
+        console.log(token, csrf_token)
+        var _data = {}
+        _data['utf8']='✓';
+        _data['_method'] = 'patch';
+        _data['authenticity_token'] = token;
+        _data['user_rate[episodes]'] = watched_ep;
+        httpPost('/api/v2/user_rates/'+id+'',_data ,csrf_token, function (data) {
+            console.log(data)
+            if(JSON.parse(data).episodes == watched_ep){
+                console.log('success');
+                update_watch_button(title_name,watched_ep);
+            }
+        })
+    });
+
+    /*
+     POST запрос необходимо делать непосредственно со страницы сайта, чтобы был корректный origin заголовок,
+     иначе токены просто не подойдут
+    */
+    function httpPost(url, data, token, callback) {
+        var http = new XMLHttpRequest();
+        var params = $.param(data)
+        console.log(params)
+        http.onreadystatechange = function() {//Call a function when the state changes.
+            if(http.readyState == 4 && http.status == 200) {
+                callback(http.responseText);
+            }
+        }
+        http.open('POST', url, false);
+        http.setRequestHeader('content-type','application/x-www-form-urlencoded; charset=UTF-8')
+        http.setRequestHeader('csrf-token',token)
+        http.setRequestHeader('x-requested-with','XMLHttpRequest')
+        http.send(params);
+    }
+}
+
 
 $(document).ready(function() {
     chrome.runtime.onMessage.addListener(function(req, sender, sendResponse) {
