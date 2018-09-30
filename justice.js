@@ -188,7 +188,7 @@ function start_content_script() {
                 console.log('request:')
                 console.log(req)
                 chrome.runtime.sendMessage(JSON.stringify({'action': 'post', 'link': 'http://licensecrush.ddns.net/add_title/', 'data': req}), function(resp) {
-                    resp = JSON.parse(resp)
+                    //resp = JSON.parse(resp)
                     console.log('resp:', resp)
                     if(resp['msg'] !== undefined) {
                         alert(resp['msg'])
@@ -363,7 +363,8 @@ function update_watch_button(title_name, current_episode) {
         Получаем похожий "user_rate":{"id":43643249,"score":0,"status":"watching","text":"","episodes":10,"chapters":null,"volumes":null,"text_html":"","rewatches":0}
         Нас интересуют id и episodes
         */
-        var user_rate = JSON.parse(data).user_rate
+        //var user_rate = JSON.parse(data).user_rate
+        var user_rate = data.user_rate
         console.log(user_rate)
         /*
         Если пришел пустой user_rate, значит тайтла у пользователя не было в списках,
@@ -395,23 +396,6 @@ function update_watch_button(title_name, current_episode) {
     });
 }
 function watched(watched_ep, id, title_name){
-    /*----------------Не рабочий вариант!-----------------*/
-    /*    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
-            $('#result').html(data)
-            var token = $('#result [name="authenticity_token"]').attr('value');
-            var csrf_token = $('#result [name="csrf-token"]').attr('content');
-            console.log(token, csrf_token)
-            var _data = {}
-            _data['utf8']='✓';
-            _data['_method'] = 'patch';
-            _data['authenticity_token'] = token;
-            _data['user_rate[episodes]'] = watched_ep;
-            chrome.runtime.sendMessage(JSON.stringify({'action': 'watch', 'link': 'https://shikimori.org/api/v2/user_rates/'+id+'', 'data':_data, 'token':csrf_token}), function(data) {
-                console.log(data);
-            })
-        })*/
-
-    /*-----------------Рабочий вариант!--------------------*/
     chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
         /*
         Результат запроса приходит битый, вытащить из него authenticity token у меня не вышло,
@@ -427,34 +411,25 @@ function watched(watched_ep, id, title_name){
         _data['_method'] = 'patch';
         _data['authenticity_token'] = token;
         _data['user_rate[episodes]'] = watched_ep;
-        httpPost('/api/v2/user_rates/'+id+'',_data ,csrf_token, function (data) {
-            console.log(data)
-            if(JSON.parse(data).episodes == watched_ep){
-                console.log('success');
-                update_watch_button(title_name,watched_ep);
+        $.post({
+            url:'/api/v2/user_rates/'+id+'',
+            data: $.param(_data),
+            headers: {
+                'content-type':'application/x-www-form-urlencoded; charset=UTF-8',
+                'csrf-token':token,
+                'x-requested-with':'XMLHttpRequest'
+            },
+            success: function (response) {
+                if(response.episodes == watched_ep){
+                    update_watch_button(title_name,watched_ep);
+                }
+            },
+            error: function () {
+                console.log('Error')
             }
         })
     });
 
-    /*
-     POST запрос необходимо делать непосредственно со страницы сайта, чтобы был корректный origin заголовок,
-     иначе токены просто не подойдут
-    */
-    function httpPost(url, data, token, callback) {
-        var http = new XMLHttpRequest();
-        var params = $.param(data)
-        console.log(params)
-        http.onreadystatechange = function() {//Call a function when the state changes.
-            if(http.readyState == 4 && http.status == 200) {
-                callback(http.responseText);
-            }
-        }
-        http.open('POST', url, false);
-        http.setRequestHeader('content-type','application/x-www-form-urlencoded; charset=UTF-8')
-        http.setRequestHeader('csrf-token',token)
-        http.setRequestHeader('x-requested-with','XMLHttpRequest')
-        http.send(params);
-    }
 }
 
 
