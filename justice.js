@@ -49,7 +49,7 @@ function player_template(episode, video_link, link_without_ep_num, data) {
                         <div class="c-column">
                             <div class="cc-options">
                                 <div class="c-buttons cc-3a">
-                                    <div class="c-column c-control increment-user_rate2">
+                                    <div class="c-column c-control increment-user_rate">
                                         <div class="icon"></div>
                                         <div class="label">Просмотрено</div>
                                         <div id="result" hidden></div>
