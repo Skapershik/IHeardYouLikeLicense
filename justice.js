@@ -49,7 +49,7 @@ function player_template(episode, video_link, link_without_ep_num, data) {
                         <div class="c-column">
                             <div class="cc-options">
                                 <div class="c-buttons cc-3a">
-                                    <div class="c-column c-control increment-user_rate">
+                                    <div class="c-column c-control increment-user_rate2">
                                         <div class="icon"></div>
                                         <div class="label">Просмотрено</div>
                                         <div id="result" hidden></div>
@@ -395,32 +395,16 @@ function update_watch_button(title_name, current_episode) {
     });
 }
 function watched(watched_ep, id, title_name){
-    /*----------------Не рабочий вариант!-----------------*/
-    /*    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
-            $('#result').html(data)
-            var token = $('#result [name="authenticity_token"]').attr('value');
-            var csrf_token = $('#result [name="csrf-token"]').attr('content');
-            console.log(token, csrf_token)
-            var _data = {}
-            _data['utf8']='✓';
-            _data['_method'] = 'patch';
-            _data['authenticity_token'] = token;
-            _data['user_rate[episodes]'] = watched_ep;
-            chrome.runtime.sendMessage(JSON.stringify({'action': 'watch', 'link': 'https://shikimori.org/api/v2/user_rates/'+id+'', 'data':_data, 'token':csrf_token}), function(data) {
-                console.log(data);
-            })
-        })*/
-
-    /*-----------------Рабочий вариант!--------------------*/
     chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
         /*
         Результат запроса приходит битый, вытащить из него authenticity token у меня не вышло,
         поэтому выводим его в невидимый блок, чтобы движок браузера выправил документ, затем уже
         получаем необходимые токены
          */
-        $('#result').html(data)
-        var token = $('#result [name="authenticity_token"]').attr('value');
-        var csrf_token = $('#result [name="csrf-token"]').attr('content');
+
+        let result = $(data)
+        var token = result.find('[name="authenticity_token"]').attr('value');
+        var csrf_token = result.find('[name="csrf-token"]').attr('content');
         console.log(token, csrf_token)
         var _data = {}
         _data['utf8']='✓';
