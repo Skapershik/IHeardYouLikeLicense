@@ -288,7 +288,7 @@ function start_content_script() {
                     episode = 1
                 }*/
                 episode = episode.toString()
-                last_studio=$('.video-variant-group .b-video_variant.active .video-author').text()
+                last_studio = $('.video-variant-group .b-video_variant.active .video-author').text()
                 console.log('Выбранный перевод',last_studio , $('.video-variant-group.active .b-video_variant.active .video-author'))
                 window.history.pushState(`episode-${episode}`, `Эпизод ${episode} / I heard you like license`, link_without_ep_num.substring(26) + episode)
                 $('.c-control.episode-num > input').attr('value', episode)
@@ -304,17 +304,16 @@ function start_content_script() {
                         console.log('episode ' + episode + 'data:')
                         console.log(ep_data['data'])
                         update_ep_info(ep_data['data'])
-                        try{
+                        try {
                             $('.c-anime_video_episodes .b-video_variant.active').removeClass('active')
-                            $('.b-video_variant[data-episode="'+episode+'"]').addClass('active')
-                        }catch (e) {
-                            console.log('Episode '+episode+' not found')
+                            $(`.b-video_variant[data-episode="${episode}"]`).addClass('active')
+                        }
+                        catch (e) {
+                            console.log(`Episode ${episode} not found`)
                         }
                         auto_video_click()
                     }
-
-                    update_watch_button(name,episode);
-
+                    update_watch_button(name,episode)
                 })
             }
 
@@ -346,19 +345,19 @@ function start_content_script() {
             }
             update_ep_info(data[1])
             $('.video-variant-group.active :first-child').addClass('active')
-            try{
-                $('.b-video_variant[data-episode="'+episode+'"]').addClass('active')
-            }catch (e) {
-                console.log('Episode '+episode+' not found')
+            try {
+                $(`.b-video_variant[data-episode="${episode}"]`).addClass('active')
             }
-            update_watch_button(name,episode);
+            catch (e) {
+                console.log(`Episode ${episode} not found`)
+            }
+            update_watch_button(name,episode)
 
         });
 
     }
-
-
 }
+
 function start_watching_form(user_id,title_name) {
     return `
     <form action="/api/v2/user_rates" data-method="POST" data-remote="true" data-type="json">
@@ -371,6 +370,7 @@ function start_watching_form(user_id,title_name) {
     </form>`
 
 }
+
 jQuery.expr[':'].icontains = function(a, i, m) {
     return jQuery(a).text().toUpperCase()
         .indexOf(m[3].toUpperCase()) >= 0;
@@ -378,21 +378,22 @@ jQuery.expr[':'].icontains = function(a, i, m) {
 
 function auto_video_click(error_count) {
         last_studio = last_studio.replace(/ .*/,'')
-        var video = $('.video-author:icontains("'+last_studio+'")')
-    try{
-        video[0].click();
-        $('.video-variant-switcher[data-kind="'+video.closest('.video-variant-group').attr('data-kind')+'"]').click();
+        var video = $(`.video-author:icontains("${last_studio}")`)
+    try {
+        video[0].click()
+        $(`.video-variant-switcher[data-kind="${video.closest('.video-variant-group').attr('data-kind')}"]`).click()
     }
     catch (e) {
-            if(error_count==undefined){
-                console.log('Error video not found');
-                last_studio='';
-                auto_video_click(1);
-            } else{
-                console.log('Error');
+            if(error_count == undefined) {
+                console.log('Error: video not found')
+                last_studio = ''
+                auto_video_click(1)
+            } else {
+                console.log('Error')
             }
     }
 }
+
 /*Основная функция, отвечающая за работу кнопки, передаем имя тайтла и выбранный эпизод */
 function update_watch_button(title_name, current_episode) {
     console.log(title_name)
@@ -409,25 +410,25 @@ function update_watch_button(title_name, current_episode) {
         необходимо с имитировать кнопку "Добавить в список", для этого пришлось прибегнуть к костылю,
         ибо OAuth2 со своими токенами
         */
-        if(user_rate==null){
+        if(user_rate == null) {
            var user_id = JSON.parse($('body.p-anime_videos').attr('data-user')).id
-            if(user_id!=null){
+            if(user_id!=null) {
                 $('body.p-anime_videos').append(start_watching_form(user_id,title_name))
                 $('#click').click();
                 update_watch_button(title_name,current_episode);
             }
-        }else{
+        }else {
             /*
         Так как обновление количества просмотренных эпизодов сделано на основе псевдо patch запроса, нужно проверить,
         чтобы серия, которую смотрит пользователь была не просмотрена ранее.
         */
-            if(user_rate.episodes<current_episode){
+            if(user_rate.episodes < current_episode) {
                 $('div.c-column.c-control.increment-user_rate').removeClass('watched')
                 $('div.c-column.c-control.increment-user_rate').on('click', function () {
                     watched(current_episode,user_rate.id,title_name);
                 })
             }
-            else{
+            else {
                 $('div.c-column.c-control.increment-user_rate').addClass('watched')
                 $('div.c-column.c-control.increment-user_rate').off('click')
             }
@@ -435,20 +436,15 @@ function update_watch_button(title_name, current_episode) {
 
     });
 }
-function watched(watched_ep, id, title_name){
-    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
-        /*
-        Результат запроса приходит битый, вытащить из него authenticity token у меня не вышло,
-        поэтому выводим его в невидимый блок, чтобы движок браузера выправил документ, затем уже
-        получаем необходимые токены
-         */
 
+function watched(watched_ep, id, title_name) {
+    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
         let result = $(data)
         var token = result.find('[name="authenticity_token"]').attr('value');
         var csrf_token = result.find('[name="csrf-token"]').attr('content');
         console.log(token, csrf_token)
         var _data = {}
-        _data['utf8']='✓';
+        _data['utf8'] = '✓';
         _data['_method'] = 'patch';
         _data['authenticity_token'] = token;
         _data['user_rate[episodes]'] = watched_ep;
@@ -471,9 +467,7 @@ function watched(watched_ep, id, title_name){
             }
         })
     });
-
 }
-
 
 $(document).ready(function() {
     chrome.runtime.onMessage.addListener(function(req, sender, sendResponse) {
