@@ -1,5 +1,5 @@
 'use strict'
-
+let last_studio;
 function player_template(episode, video_link, link_without_ep_num, data) {
     return `<div class="player-container">
                     <div class="b-video_player" data-episode="${episode}">
@@ -288,7 +288,8 @@ function start_content_script() {
                     episode = 1
                 }*/
                 episode = episode.toString()
-
+                last_studio=$('.video-variant-group .b-video_variant.active .video-author').text()
+                console.log('Выбранный перевод',last_studio , $('.video-variant-group.active .b-video_variant.active .video-author'))
                 window.history.pushState(`episode-${episode}`, `Эпизод ${episode} / I heard you like license`, link_without_ep_num.substring(26) + episode)
                 $('.c-control.episode-num > input').attr('value', episode)
                 $('.c-control.upload').attr('href', upload_link_template(link_without_ep_num, episode))
@@ -303,6 +304,13 @@ function start_content_script() {
                         console.log('episode ' + episode + 'data:')
                         console.log(ep_data['data'])
                         update_ep_info(ep_data['data'])
+                        try{
+                            $('.c-anime_video_episodes .b-video_variant.active').removeClass('active')
+                            $('.b-video_variant[data-episode="'+episode+'"]').addClass('active')
+                        }catch (e) {
+                            console.log('Episode '+episode+' not found')
+                        }
+                        auto_video_click()
                     }
 
                     update_watch_button(name,episode);
@@ -338,12 +346,17 @@ function start_content_script() {
             }
             update_ep_info(data[1])
             $('.video-variant-group.active :first-child').addClass('active')
-
+            try{
+                $('.b-video_variant[data-episode="'+episode+'"]').addClass('active')
+            }catch (e) {
+                console.log('Episode '+episode+' not found')
+            }
             update_watch_button(name,episode);
 
         });
 
     }
+
 
 }
 function start_watching_form(user_id,title_name) {
@@ -357,6 +370,28 @@ function start_watching_form(user_id,title_name) {
     <input type="submit" id="click" hidden="">
     </form>`
 
+}
+jQuery.expr[':'].icontains = function(a, i, m) {
+    return jQuery(a).text().toUpperCase()
+        .indexOf(m[3].toUpperCase()) >= 0;
+};
+
+function auto_video_click(error_count) {
+        last_studio = last_studio.replace(/ .*/,'')
+        var video = $('.video-author:icontains("'+last_studio+'")')
+    try{
+        video[0].click();
+        $('.video-variant-switcher[data-kind="'+video.closest('.video-variant-group').attr('data-kind')+'"]').click();
+    }
+    catch (e) {
+            if(error_count==undefined){
+                console.log('Error video not found');
+                last_studio='';
+                auto_video_click(1);
+            } else{
+                console.log('Error');
+            }
+    }
 }
 /*Основная функция, отвечающая за работу кнопки, передаем имя тайтла и выбранный эпизод */
 function update_watch_button(title_name, current_episode) {
@@ -428,6 +463,7 @@ function watched(watched_ep, id, title_name){
             success: function (response) {
                 if(response.episodes == watched_ep){
                     update_watch_button(title_name,watched_ep);
+
                 }
             },
             error: function () {
