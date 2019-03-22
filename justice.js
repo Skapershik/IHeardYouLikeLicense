@@ -1,5 +1,6 @@
 'use strict'
 let last_studio;
+let flag = true;
 function player_template(episode, video_link, link_without_ep_num, data) {
     return `<div class="player-container">
                     <div class="b-video_player" data-episode="${episode}">
@@ -203,8 +204,9 @@ function start_content_script() {
             }
         })
     }
-    else if(location.href.includes('?no_redirect=1')) {
+    else if(location.href.endsWith('?no_redirect=1')&&flag) {
         console.log('Licensed anime video page!')
+        flag = false;
         if(location.href.endsWith('/video_online')) {
             location.href = location.href + '/1?no_redirect=1'
         }
@@ -297,7 +299,8 @@ function start_content_script() {
                 episode = episode.toString()
                 last_studio = $('.video-variant-group .b-video_variant.active .video-author').text()
                 console.log('Выбранный перевод',last_studio , $('.video-variant-group.active .b-video_variant.active .video-author'))
-                window.history.pushState(`episode-${episode}`, `Эпизод ${episode} / I heard you like license`, link_without_ep_num.substring(26) + episode+'?no_redirect=1')
+                window.history.pushState(`episode-${episode}`, `Эпизод ${episode} / I heard you like license`, link_without_ep_num.substring(26) + episode)
+                //location.href+='?no_redirect=1'
                 $('.c-control.episode-num > input').attr('value', episode)
                 $('.c-control.upload').attr('href', upload_link_template(link_without_ep_num, episode))
 
@@ -434,7 +437,7 @@ function start_content_script() {
                     episode = episode.toString()
                     last_studio = $('.video-variant-group .b-video_variant.active .video-author').text()
                     console.log('Выбранный перевод',last_studio , $('.video-variant-group.active .b-video_variant.active .video-author'))
-                    window.history.pushState(`episode-${episode}`, `Эпизод ${episode} / I heard you like license`, link_without_ep_num.substring(26) + episode+'?no_redirect=1')
+                    window.history.pushState(`episode-${episode}`, `Эпизод ${episode} / I heard you like license`, link_without_ep_num.substring(26) + episode + '?no_redirect=1')
                     $('.c-control.episode-num > input').attr('value', episode)
                     $('.c-control.upload').attr('href', upload_link_template(link_without_ep_num, episode))
 
@@ -635,6 +638,7 @@ function alternative_source(mal_title_id, current_episode){
                 array[1].raw=[]
                 array[1].fandub=[]
                 for(let i = 0;i<translations.data.translations.length;i++){
+                    if(!translations.data.translations[i].authorsSummary) translations.data.translations[i].authorsSummary = 'Неизвестный'
                     if(translations.data.translations[i].type=='subRu'){
                         array[1].subtitles.push(['smotretanime.ru',translations.data.translations[i].embedUrl,translations.data.translations[i].authorsSummary])
                     }else if(translations.data.translations[i].type=='raw'){
