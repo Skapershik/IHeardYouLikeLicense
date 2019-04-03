@@ -1,10 +1,12 @@
 'use strict'
 let last_studio;
 let flag = true;
+let source = 'licensecrush'
+
 function player_template(episode, video_link, link_without_ep_num, data) {
     return `<div class="player-container">
                     <div class="b-video_player" data-episode="${episode}">
-                        <div class="player-area"><iframe src="${video_link}" id="player-iframe" frameborder="0" webkitallowfullscreen="true" mozallowfullscreen="true" scrolling="no" allowfullscreen="allowfullscreen" style="height: ${$(window).height()/2}px;"></iframe></div>
+                        <div class="player-area"><iframe src="${video_link}" id="player-iframe" frameborder="0" webkitallowfullscreen="true" mozallowfullscreen="true" scrolling="no" allowfullscreen="allowfullscreen" style="height: ${$(window).height() / 2}px;"></iframe></div>
                         <div class="cc-anime_video_report-new">
                             <div class="cc-2a">
                                 <div class="c-column">
@@ -41,7 +43,7 @@ function player_template(episode, video_link, link_without_ep_num, data) {
                                 </a>
                             </div>
                             <div class="cc-optional_controls">
-                                <a class="c-control upload" href="${link_without_ep_num.replace('?no_redirect=1','')}new?anime_video%5Banime_id%5D=36649&amp;anime_video%5Bepisode%5D=${episode}&amp;anime_video%5Bkind%5D=fandub&amp;anime_video%5Blanguage%5D=russian&amp;anime_video%5Bquality%5D=tv&amp;anime_video%5Bsource%5D=shikimori.org&amp;anime_video%5Bstate%5D=uploaded">
+                                <a class="c-control upload" href="${link_without_ep_num.replace('?no_redirect=1', '')}new?anime_video%5Banime_id%5D=36649&amp;anime_video%5Bepisode%5D=${episode}&amp;anime_video%5Bkind%5D=fandub&amp;anime_video%5Blanguage%5D=russian&amp;anime_video%5Bquality%5D=tv&amp;anime_video%5Bsource%5D=shikimori.org&amp;anime_video%5Bstate%5D=uploaded">
                                     <div class="icon"></div>
                                     <div class="label">Загрузить</div>
                                 </a>
@@ -81,7 +83,7 @@ function empty_player_template(episode, link_without_ep_num, data) {
     return `<div class="player-container">
         <div class="b-video_player">
             <div class="player-area">
-                <div class="player-placeholder" style="height: ${$(window).height()/2}px;">&nbsp;</div>
+                <div class="player-placeholder" style="height: ${$(window).height() / 2}px;">&nbsp;</div>
             </div>
             <div class="cc-player_controls cc-2a">
                 <div class="c-column">
@@ -99,7 +101,7 @@ function empty_player_template(episode, link_without_ep_num, data) {
                 </div>
                 <div class="c-column">
                     <div class="cc-options">
-                        <div class="c-column cc-2a"><a class="c-control upload" href="${link_without_ep_num.replace('?no_redirect=1','')}new?anime_video%5Banime_id%5D=36456&amp;anime_video%5Bepisode%5D=${episode}&amp;anime_video%5Bkind%5D=fandub&amp;anime_video%5Blanguage%5D=russian&amp;anime_video%5Bquality%5D=tv&amp;anime_video%5Bsource%5D=shikimori.org&amp;anime_video%5Bstate%5D=uploaded">
+                        <div class="c-column cc-2a"><a class="c-control upload" href="${link_without_ep_num.replace('?no_redirect=1', '')}new?anime_video%5Banime_id%5D=36456&amp;anime_video%5Bepisode%5D=${episode}&amp;anime_video%5Bkind%5D=fandub&amp;anime_video%5Blanguage%5D=russian&amp;anime_video%5Bquality%5D=tv&amp;anime_video%5Bsource%5D=shikimori.org&amp;anime_video%5Bstate%5D=uploaded">
                                 <div class="icon"></div>
                                 <div class="label">Загрузить</div>
                             </a></div>
@@ -122,7 +124,15 @@ function video_variant_template(kinds, i, opt_num, opt, kinds_resolve) {
 }
 
 function cc_template() {
-    return `<div class="cc">
+    return `
+    <div>
+        Источник:
+        <select id="source_id">
+            <option>licensecrush</option>
+            <option>smotretanime</option>
+        </select>
+    </div>
+    <div class="cc">
         <div class="c-videos">
             <div class="title">Варианты видео<div class="video-variant-switcher active" data-kind="fandub">озвучка</div>
                 <div class="video-variant-switcher" data-kind="subtitles">субтитры</div>
@@ -157,32 +167,37 @@ function episode_variant_template(data, i) {
 }
 
 function upload_link_template(link_without_ep_num, episode) {
-    return `${link_without_ep_num.replace('?no_redirect=1','')}new?anime_video%5Banime_id%5D=36456&amp;anime_video%5Bepisode%5D=${episode}&amp;anime_video%5Bkind%5D=fandub&amp;anime_video%5Blanguage%5D=russian&amp;anime_video%5Bquality%5D=tv&amp;anime_video%5Bsource%5D=shikimori.org&amp;anime_video%5Bstate%5D=uploaded`
+    return `${link_without_ep_num.replace('?no_redirect=1', '')}new?anime_video%5Banime_id%5D=36456&amp;anime_video%5Bepisode%5D=${episode}&amp;anime_video%5Bkind%5D=fandub&amp;anime_video%5Blanguage%5D=russian&amp;anime_video%5Bquality%5D=tv&amp;anime_video%5Bsource%5D=shikimori.org&amp;anime_video%5Bstate%5D=uploaded`
 }
 
 function start_content_script() {
-    if($('.b-link_button.is-licensed').length||$('.b-link_button.is-censored').length) {
+    if ($('.b-link_button.is-licensed').length || $('.b-link_button.is-censored').length) {
         console.log('Licensed anime page!')
         let url = location.href.replace('shikimori', 'play.shikimori') + '/video_online/'
-        if($('.current-episodes').length) {
+        if ($('.current-episodes').length) {
             url += $('.current-episodes').text()
-        }
-        else {
+        } else {
             url += '1'
         }
         url += '?no_redirect=1'
         console.log('URL:', url)
-        $('.b-link_button.is-licensed').removeClass('is-licensed disabled').removeClass('is-censored disabled').addClass('watch-online').text('Смотреть онлайн').attr('href', url).click(function() {location.href = url})
-        $('.b-link_button.is-censored').removeClass('is-censored disabled').addClass('watch-online').text('Смотреть онлайн').attr('href', url).click(function() {location.href = url})
-    }
-    else if(location.href.includes('video_online/new?anime_video')) {
-        chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://play.shikimori.org/animes/'+location.href.substring(34, location.href.indexOf('/video_online/'))+'/video_online/1?no_redirect=1'}), function(resp) {
-            if($(resp).find('.b-errors > .subheadline').text() == 'Просмотр недоступен'){
+        $('.b-link_button.is-licensed').removeClass('is-licensed disabled').removeClass('is-censored disabled').addClass('watch-online').text('Смотреть онлайн').attr('href', url).click(function () {
+            location.href = url
+        })
+        $('.b-link_button.is-censored').removeClass('is-censored disabled').addClass('watch-online').text('Смотреть онлайн').attr('href', url).click(function () {
+            location.href = url
+        })
+    } else if (location.href.includes('video_online/new?anime_video')) {
+        chrome.runtime.sendMessage(JSON.stringify({
+            'action': 'get',
+            'link': 'https://play.shikimori.org/animes/' + location.href.substring(34, location.href.indexOf('/video_online/')) + '/video_online/1?no_redirect=1'
+        }), function (resp) {
+            if ($(resp).find('.b-errors > .subheadline').text() == 'Просмотр недоступен') {
                 console.log('Upload video page!')
                 $('form > .subheadline').text($('form > .subheadline').text() + ' (I Heard You Like License)')
-                $('.b-button.do-preview').click(function() {
+                $('.b-button.do-preview').click(function () {
                     $('.create-buttons > .buttons').empty().append($(`<div class="b-button" id="save-button">Работает. Сохранить</div>`))
-                    $('#save-button').click(function() {
+                    $('#save-button').click(function () {
                         let req = {}
                         req['episode'] = $('#anime_video_episode')[0].value
                         req['name'] = location.href.substring(34, location.href.indexOf('/video_online/'))
@@ -192,10 +207,14 @@ function start_content_script() {
                         req['link'] = $('#anime_video_url')[0].value
                         console.log('request:')
                         console.log(req)
-                        chrome.runtime.sendMessage(JSON.stringify({'action': 'post', 'link': 'http://licensecrush.ddns.net/add_title/', 'data': req}), function(resp) {
+                        chrome.runtime.sendMessage(JSON.stringify({
+                            'action': 'post',
+                            'link': 'http://licensecrush.ddns.net/add_title/',
+                            'data': req
+                        }), function (resp) {
                             resp = JSON.parse(resp)
                             console.log('resp:', resp)
-                            if(resp['msg'] !== undefined) {
+                            if (resp['msg'] !== undefined) {
                                 alert(resp['msg'])
                             }
                         })
@@ -203,171 +222,210 @@ function start_content_script() {
                 })
             }
         })
-    }
-    else if(location.href.endsWith('?no_redirect=1')&&flag) {
+    } else if (location.href.endsWith('?no_redirect=1') && flag) {
         console.log('Licensed anime video page!')
         flag = false;
-        if(location.href.endsWith('/video_online')) {
+        if (location.href.endsWith('/video_online')) {
             location.href = location.href + '/1?no_redirect=1'
-        }
-        else if(location.href.endsWith('/video_online/')) {
+        } else if (location.href.endsWith('/video_online/')) {
             location.href = location.href + '1?no_redirect=1'
-        }
-        else if(location.href.endsWith('/video_online/0?no_redirect=1')) {
+        } else if (location.href.endsWith('/video_online/0?no_redirect=1')) {
             location.href = location.href.replace('0?no_redirect=1', '1?no_redirect=1')
         }
         $('.player-container').remove()
         $('.cc.block').remove()
         let split_url = location.href.split('/')
-        let name = split_url[split_url.length - 3], episode = split_url[split_url.length - 1].replace('?no_redirect=1','')
-        /*chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'http://licensecrush.ddns.net/anime_episodes_info/'+name+'/'+episode+'/'}), function(data) {
-            data = JSON.parse(data)
-            console.log(data)
-            if(!data['correct']) {
-                console.log('Request is not correct')
-            }
-            data = data['data']
-            console.log(data)
-            let link_without_ep_num = location.href.substring(0, location.href.lastIndexOf('/') + 1)
-            let player_container = ''
-            if(!$.isEmptyObject(data[1]) && (data[1]['fandub'].length + data[1]['subtitles'].length + data[1]['raw'].length)) {
-                let kind = ''
-                let kinds = ['fandub', 'subtitles', 'raw']
-                for(let i in kinds) {
-                    if(data[1][kinds[i]].length) {
-                        kind = kinds[i]
-                        break
+        let name = split_url[split_url.length - 3],
+            episode = split_url[split_url.length - 1].replace('?no_redirect=1', '')
+        chrome.runtime.sendMessage(JSON.stringify({
+            'action': 'get',
+            'link': 'http://licensecrush.ddns.net/anime_episodes_info/' + name + '/' + episode + '/'
+        }), function (data) {
+            alternative_source(parseInt(name), episode).then(
+                resolve => {
+                    var data_first = JSON.parse(data)
+                    var data_second = resolve
+                    console.log('LicensecrushServer', data_first)
+                    console.log('SmotretanimeServer', data_second)
+                    if (source == 'licensecrush') data = data_first
+                    if (source == 'smotretanime') data = data_second
+                    if (!data_first.data[0].length) {
+                        data_first.data[0] = data_second.data[0]
                     }
-                }
-                let video_link = data[1][kind][0][1]
-                player_container = player_template(episode, video_link, link_without_ep_num, data)
-            }
-            else {
-                player_container = empty_player_template(episode, link_without_ep_num, data)
-            }
-            $('.l-content').prepend(player_container)
-            $('.c-column.c-control.report').click(function() {$('.cc-anime_video_report-new').show()})
-            $('.c-column.c-control.show-options').click(function() {
-                if(!$(this).hasClass('selected')) {
-                    $('.cc-navigation').hide()
-                    $('.cc-optional_controls').show()
-                    $('.c-column.c-control.show-options').addClass('selected')
-                }
-                else {
-                    $('.cc-optional_controls').hide()
-                    $('.cc-navigation').show()
-                    $('.c-column.c-control.show-options').removeClass('selected')
-                }
-            })
-            $('#hide-report').click(function() {$('.cc-anime_video_report-new').hide()})
-            let update_ep_info = function(ep_data) {
-                let kinds_resolve = {'fandub': 'Озвучка', 'subtitles': 'Субтитры', 'raw': 'Оригинал'}
-                for(let i in kinds) {
-                    $(`div[data-kind="${kinds[i]}"].video-variant-group`).empty()
-                    for(let opt_num in ep_data[kinds[i]]) {
-                        let opt = ep_data[kinds[i]][opt_num]
-                        $(`div[data-kind="${kinds[i]}"].video-variant-group`).append($(video_variant_template(kinds, i, opt_num, opt, kinds_resolve)))
-                        $(`#option-${kinds[i]}-${opt_num}`).click(function() {
-                            if($('#player-iframe').length) {
-                                $('#player-iframe').attr('src', opt[1])
+                    console.log(data)
+                    if (!data['correct']) {
+                        console.log('Request is not correct')
+                    }
+                    data = data['data']
+                    console.log(data)
+                    let link_without_ep_num = location.href.substring(0, location.href.lastIndexOf('/') + 1)
+                    let player_container = ''
+                    if (!$.isEmptyObject(data[1]) && (data[1]['fandub'].length + data[1]['subtitles'].length + data[1]['raw'].length)) {
+                        let kind = ''
+                        let kinds = ['fandub', 'subtitles', 'raw']
+                        for (let i in kinds) {
+                            if (data[1][kinds[i]].length) {
+                                kind = kinds[i]
+                                break
                             }
-                            else {
-                                $('.player-area').empty().append($(`
-                                    <iframe src="${opt[1]}" id="player-iframe" frameborder="0" webkitallowfullscreen="true" mozallowfullscreen="true" scrolling="no" allowfullscreen="allowfullscreen" style="height: ${$(window).height()/2}px;"></iframe></div>
+                        }
+                        let video_link = data[1][kind][0][1]
+                        player_container = player_template(episode, video_link, link_without_ep_num, data)
+                    } else {
+                        player_container = empty_player_template(episode, link_without_ep_num, data)
+                    }
+                    $('.l-content').prepend(player_container)
+                    $('.c-column.c-control.report').click(function () {
+                        $('.cc-anime_video_report-new').show()
+                    })
+                    $('.c-column.c-control.show-options').click(function () {
+                        if (!$(this).hasClass('selected')) {
+                            $('.cc-navigation').hide()
+                            $('.cc-optional_controls').show()
+                            $('.c-column.c-control.show-options').addClass('selected')
+                        } else {
+                            $('.cc-optional_controls').hide()
+                            $('.cc-navigation').show()
+                            $('.c-column.c-control.show-options').removeClass('selected')
+                        }
+                    })
+                    $('#hide-report').click(function () {
+                        $('.cc-anime_video_report-new').hide()
+                    })
+                    let update_ep_info = function (ep_data) {
+                        let kinds_resolve = {'fandub': 'Озвучка', 'subtitles': 'Субтитры', 'raw': 'Оригинал'}
+                        for (let i in kinds) {
+                            $(`div[data-kind="${kinds[i]}"].video-variant-group`).empty()
+                            for (let opt_num in ep_data[kinds[i]]) {
+                                let opt = ep_data[kinds[i]][opt_num]
+                                $(`div[data-kind="${kinds[i]}"].video-variant-group`).append($(video_variant_template(kinds, i, opt_num, opt, kinds_resolve)))
+                                $(`#option-${kinds[i]}-${opt_num}`).click(function () {
+                                    if ($('#player-iframe').length) {
+                                        $('#player-iframe').attr('src', opt[1])
+                                    } else {
+                                        $('.player-area').empty().append($(`
+                                    <iframe src="${opt[1]}" id="player-iframe" frameborder="0" webkitallowfullscreen="true" mozallowfullscreen="true" scrolling="no" allowfullscreen="allowfullscreen" style="height: ${$(window).height() / 2}px;"></iframe></div>
                                     `))
-                                $('.video-link.no-video').remove()
+                                        $('.video-link.no-video').remove()
+                                    }
+                                    for (let j in kinds) {
+                                        $(`div[data-kind="${kinds[j]}"].video-variant-group`).children().each(function () {
+                                            $(this).removeClass('active')
+                                        })
+                                    }
+                                    $(this).addClass('active')
+                                })
                             }
-                            for(let j in kinds) {
-                                $(`div[data-kind="${kinds[j]}"].video-variant-group`).children().each(function() {$(this).removeClass('active')})
-                            }
-                            $(this).addClass('active')
+                        }
+                    }
+
+                    let goto_episode = function (episode_num) {
+                        episode = episode_num
+                        /*let episodes_num = $('span.episode-num').length
+                        console.log('episodes_num', episodes_num, 'episode', episode)
+                        if(episode == 0) {
+                            episode = episodes_num
+                        }
+                        else if(episode >= episodes_num + 1) {
+                            episode = 1
+                        }*/
+                        episode = episode.toString()
+                        last_studio = $('.video-variant-group .b-video_variant.active .video-author').text()
+                        console.log('Выбранный перевод', last_studio, $('.video-variant-group.active .b-video_variant.active .video-author'))
+                        window.history.pushState(`episode-${episode}`, `Эпизод ${episode} / I heard you like license`, link_without_ep_num.substring(26) + episode + '?no_redirect=1')
+                        //location.href+='?no_redirect=1'
+                        $('.c-control.episode-num > input').attr('value', episode)
+                        $('.c-control.upload').attr('href', upload_link_template(link_without_ep_num, episode))
+
+                        // set new html title
+                        document.title = document.title.replace(/\d+/i, episode)
+                        chrome.runtime.sendMessage(JSON.stringify({
+                            'action': 'get',
+                            'link': 'http://licensecrush.ddns.net/anime_episode_info/' + name + '/' + episode + '/'
+                        }), function (ep_data) {
+                            alternative_source(parseInt(name), episode).then(
+                                resolve => {
+                                    resolve.data = resolve.data[1]
+                                    var ep_data_first = JSON.parse(ep_data)
+                                    var ep_data_second = resolve
+                                    console.log('Episode info from licensecrush', ep_data_first)
+                                    console.log('Episode info from smotretanime', ep_data_second)
+                                    if (source == 'licensecrush') ep_data = ep_data_first
+                                    if (source == 'smotretanime') ep_data = ep_data_second
+                                    if (ep_data['correct']) {
+                                        console.log('episode ' + episode + 'data:')
+                                        console.log(ep_data['data'])
+                                        update_ep_info(ep_data['data'])
+                                        try {
+                                            $('.c-anime_video_episodes .b-video_variant.active').removeClass('active')
+                                            $(`.b-video_variant[data-episode="${episode}"]`).addClass('active')
+                                        } catch (e) {
+                                            console.log(`Episode ${episode} not found`)
+                                        }
+                                        auto_video_click()
+                                    }
+                                    update_watch_button(name, episode)
+                                }
+                            )
                         })
                     }
-                }
-            }
 
-            let goto_episode = function(episode_num) {
-                episode = episode_num
-                /!*let episodes_num = $('span.episode-num').length
-                console.log('episodes_num', episodes_num, 'episode', episode)
-                if(episode == 0) {
-                    episode = episodes_num
-                }
-                else if(episode >= episodes_num + 1) {
-                    episode = 1
-                }*!/
-                episode = episode.toString()
-                last_studio = $('.video-variant-group .b-video_variant.active .video-author').text()
-                console.log('Выбранный перевод',last_studio , $('.video-variant-group.active .b-video_variant.active .video-author'))
-                window.history.pushState(`episode-${episode}`, `Эпизод ${episode} / I heard you like license`, link_without_ep_num.substring(26) + episode)
-                //location.href+='?no_redirect=1'
-                $('.c-control.episode-num > input').attr('value', episode)
-                $('.c-control.upload').attr('href', upload_link_template(link_without_ep_num, episode))
-
-                // set new html title
-                document.title = document.title.replace(/\d+/i, episode)
-
-                chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'http://licensecrush.ddns.net/anime_episode_info/'+name+'/'+episode+'/'}), function(ep_data) {
-                //$.get('http://licensecrush.ddns.net/anime_episode_info/'+name+'/'+episode+'/', function(ep_data) {
-                    ep_data = JSON.parse(ep_data)
-                    if(ep_data['correct']) {
-                        console.log('episode ' + episode + 'data:')
-                        console.log(ep_data['data'])
-                        update_ep_info(ep_data['data'])
-                        try {
-                            $('.c-anime_video_episodes .b-video_variant.active').removeClass('active')
-                            $(`.b-video_variant[data-episode="${episode}"]`).addClass('active')
+                    $('.c-control.prev').click(function () {
+                        goto_episode(parseInt(episode) - 1)
+                    })
+                    $('.c-control.next').click(function () {
+                        goto_episode(parseInt(episode) + 1)
+                    })
+                    let cc = $(cc_template())
+                    console.log('Writing cc...')
+                    $('.player-container').after(cc)
+                    let kinds = ['fandub', 'subtitles', 'raw']
+                    let set_active_var_switcher = function (kind) {
+                        for (let i in kinds) {
+                            $(`div[data-kind="${kinds[i]}"].video-variant-switcher`).removeClass('active')
+                            $(`div[data-kind="${kinds[i]}"].video-variant-group`).removeClass('active')
                         }
-                        catch (e) {
-                            console.log(`Episode ${episode} not found`)
-                        }
-                        auto_video_click()
+                        $(`div[data-kind="${kind}"].video-variant-switcher`).addClass('active')
+                        $(`div[data-kind="${kind}"].video-variant-group`).addClass('active')
                     }
-                    update_watch_button(name,episode)
-                    console.log('MAL ID',parseInt(name))
+                    for (let i in kinds) {
+                        $(`div[data-kind="${kinds[i]}"].video-variant-switcher`).click(function () {
+                            set_active_var_switcher(kinds[i])
+                        })
+                    }
+                    console.log('Done!')
+                    for (let i = data[0].length - 1; i >= 0; i--) {
+                        $('#episodes-title').after($(episode_variant_template(data, i)))
+                        $(`#episode-${data[0][i][2]}`).click(function () {
+                            $('div.c-anime_video_episodes > .b-video_variant.active').each(function () {
+                                $(this).removeClass('active')
+                            })
+                            goto_episode(data[0][i][2])
+                            $(this).parent().addClass('active')
+                        })
+                    }
+                    update_ep_info(data[1])
+                    $('.video-variant-group.active :first-child').addClass('active')
+                    try {
+                        $(`.b-video_variant[data-episode="${episode}"]`).addClass('active')
+                    } catch (e) {
+                        console.log(`Episode ${episode} not found`)
+                    }
+                    update_watch_button(name, episode)
+                    console.log('MAL ID', parseInt(name))
                     alternative_source(parseInt(name), episode)
-                })
-            }
-
-            $('.c-control.prev').click(function() {goto_episode(parseInt(episode) - 1)})
-            $('.c-control.next').click(function() {goto_episode(parseInt(episode) + 1)})
-            let cc = $(cc_template())
-            console.log('Writing cc...')
-            $('.player-container').after(cc)
-            let kinds = ['fandub', 'subtitles', 'raw']
-            let set_active_var_switcher = function(kind) {
-                for(let i in kinds) {
-                    $(`div[data-kind="${kinds[i]}"].video-variant-switcher`).removeClass('active')
-                    $(`div[data-kind="${kinds[i]}"].video-variant-group`).removeClass('active')
+                    console.log($('#source_id'))
+                    $('#source_id').on('change', function () {
+                        console.log($('#source_id').val())
+                        source = $('#source_id').val()
+                        $('.video-variant-group .b-video_variant').remove()
+                        $('.c-anime_video_episodes .b-video_variant.active a').click()
+                    })
                 }
-                $(`div[data-kind="${kind}"].video-variant-switcher`).addClass('active')
-                $(`div[data-kind="${kind}"].video-variant-group`).addClass('active')
-            }
-            for(let i in kinds) {
-                $(`div[data-kind="${kinds[i]}"].video-variant-switcher`).click(function() {set_active_var_switcher(kinds[i])})
-            }
-            console.log('Done!')
-            for(let i = data[0].length - 1; i >= 0; i--) {
-                $('#episodes-title').after($(episode_variant_template(data, i)))
-                $(`#episode-${data[0][i][2]}`).click(function() {
-                    $('div.c-anime_video_episodes > .b-video_variant.active').each(function() {$(this).removeClass('active')})
-                    goto_episode(data[0][i][2])
-                    $(this).parent().addClass('active')
-                })
-            }
-            update_ep_info(data[1])
-            $('.video-variant-group.active :first-child').addClass('active')
-            try {
-                $(`.b-video_variant[data-episode="${episode}"]`).addClass('active')
-            }
-            catch (e) {
-                console.log(`Episode ${episode} not found`)
-            }
-            update_watch_button(name,episode)
-            console.log('MAL ID',parseInt(name))
-            alternative_source(parseInt(name), episode)
-        });*/
-        alternative_source(parseInt(name), episode).then(
+            )
+
+        });
+        /*alternative_source(parseInt(name), episode).then(
             resolve => {
                 var data = resolve
                 console.log(data)
@@ -507,11 +565,11 @@ function start_content_script() {
                 update_watch_button(name,episode)
                 console.log('MAL ID',parseInt(name))
         }
-        )
+        )*/
     }
 }
 
-function start_watching_form(user_id,title_name) {
+function start_watching_form(user_id, title_name) {
     return `
     <form action="/api/v2/user_rates" data-method="POST" data-remote="true" data-type="json">
     <input type="hidden" name="frontend" value="1">
@@ -524,33 +582,35 @@ function start_watching_form(user_id,title_name) {
 
 }
 
-jQuery.expr[':'].icontains = function(a, i, m) {
+jQuery.expr[':'].icontains = function (a, i, m) {
     return jQuery(a).text().toUpperCase()
         .indexOf(m[3].toUpperCase()) >= 0;
 };
 
 function auto_video_click(error_count) {
-        last_studio = last_studio.replace(/ .*/,'')
-        var video = $(`.video-author:icontains("${last_studio}")`)
+    last_studio = last_studio.replace(/ .*/, '')
+    var video = $(`.video-author:icontains("${last_studio}")`)
     try {
         video[0].click()
         $(`.video-variant-switcher[data-kind="${video.closest('.video-variant-group').attr('data-kind')}"]`).click()
-    }
-    catch (e) {
-            if(error_count == undefined) {
-                console.log('Error: video not found')
-                last_studio = ''
-                auto_video_click(1)
-            } else {
-                console.log('Error')
-            }
+    } catch (e) {
+        if (error_count == undefined) {
+            console.log('Error: video not found')
+            last_studio = ''
+            auto_video_click(1)
+        } else {
+            console.log('Error')
+        }
     }
 }
 
 /*Основная функция, отвечающая за работу кнопки, передаем имя тайтла и выбранный эпизод */
 function update_watch_button(title_name, current_episode) {
     console.log(title_name)
-    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/api/animes/'+parseInt(title_name)+'/'}), function(data) {
+    chrome.runtime.sendMessage(JSON.stringify({
+        'action': 'get',
+        'link': 'https://shikimori.org/api/animes/' + parseInt(title_name) + '/'
+    }), function (data) {
         /*
         Получаем похожий "user_rate":{"id":43643249,"score":0,"status":"watching","text":"","episodes":10,"chapters":null,"volumes":null,"text_html":"","rewatches":0}
         Нас интересуют id и episodes
@@ -563,25 +623,24 @@ function update_watch_button(title_name, current_episode) {
         необходимо с имитировать кнопку "Добавить в список", для этого пришлось прибегнуть к костылю,
         ибо OAuth2 со своими токенами
         */
-        if(user_rate == null) {
-           var user_id = JSON.parse($('body.p-anime_videos').attr('data-user')).id
-            if(user_id!=null) {
-                $('body.p-anime_videos').append(start_watching_form(user_id,title_name))
+        if (user_rate == null) {
+            var user_id = JSON.parse($('body.p-anime_videos').attr('data-user')).id
+            if (user_id != null) {
+                $('body.p-anime_videos').append(start_watching_form(user_id, title_name))
                 $('#click').click();
-                update_watch_button(title_name,current_episode);
+                update_watch_button(title_name, current_episode);
             }
-        }else {
+        } else {
             /*
         Так как обновление количества просмотренных эпизодов сделано на основе псевдо patch запроса, нужно проверить,
         чтобы серия, которую смотрит пользователь была не просмотрена ранее.
         */
-            if(user_rate.episodes < current_episode) {
+            if (user_rate.episodes < current_episode) {
                 $('div.c-column.c-control.increment-user_rate').removeClass('watched')
                 $('div.c-column.c-control.increment-user_rate').on('click', function () {
-                    watched(current_episode,user_rate.id,title_name);
+                    watched(current_episode, user_rate.id, title_name);
                 })
-            }
-            else {
+            } else {
                 $('div.c-column.c-control.increment-user_rate').addClass('watched')
                 $('div.c-column.c-control.increment-user_rate').off('click')
             }
@@ -591,7 +650,10 @@ function update_watch_button(title_name, current_episode) {
 }
 
 function watched(watched_ep, id, title_name) {
-    chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': 'https://shikimori.org/user_rates/'+id+'/edit'}), function(data) {
+    chrome.runtime.sendMessage(JSON.stringify({
+        'action': 'get',
+        'link': 'https://shikimori.org/user_rates/' + id + '/edit'
+    }), function (data) {
         let result = $(data)
         var token = result.find('[name="authenticity_token"]').attr('value');
         var csrf_token = result.find('[name="csrf-token"]').attr('content');
@@ -602,16 +664,16 @@ function watched(watched_ep, id, title_name) {
         _data['authenticity_token'] = token;
         _data['user_rate[episodes]'] = watched_ep;
         $.post({
-            url:'/api/v2/user_rates/'+id+'',
+            url: '/api/v2/user_rates/' + id + '',
             data: $.param(_data),
             headers: {
-                'content-type':'application/x-www-form-urlencoded; charset=UTF-8',
-                'csrf-token':token,
-                'x-requested-with':'XMLHttpRequest'
+                'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'csrf-token': token,
+                'x-requested-with': 'XMLHttpRequest'
             },
             success: function (response) {
-                if(response.episodes == watched_ep){
-                    update_watch_button(title_name,watched_ep);
+                if (response.episodes == watched_ep) {
+                    update_watch_button(title_name, watched_ep);
 
                 }
             },
@@ -622,29 +684,48 @@ function watched(watched_ep, id, title_name) {
     });
 }
 
-function alternative_source(mal_title_id, current_episode){
+function smotretanime_domain_fix(url) {
+    let t = 'smotretanime'
+    return url.replace('hentai365', t).replace('smotret-anime', t).replace('anime365', t)
+}
+
+function alternative_source(mal_title_id, current_episode) {
     return new Promise(function (resolve, reject) {
-        chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': `https://smotretanime.ru/api/series?myAnimeListId=${mal_title_id}`}), function(title) {
-            console.log(title.data[0].episodes[current_episode-1].id)
-            var array = [[],[]]
-            for(let i = 0;i < title.data[0].episodes.length;i++){
-                array[0].push(["озвучка, субтитры, оригинал", "smotretanime",i+1])
+        chrome.runtime.sendMessage(JSON.stringify({
+            'action': 'get',
+            'link': `https://smotretanime.ru/api/series?myAnimeListId=${mal_title_id}`
+        }), function (title) {
+            console.log(title.data[0].episodes[current_episode - 1].id)
+            var array = {};
+            array.correct = true;
+            array.data = [[], []]
+            for (let i = 0; i < title.data[0].episodes.length; i++) {
+                array.data[0].push(["озвучка, субтитры, оригинал", "smotretanime", i + 1])
             }
             console.log(array)
-            chrome.runtime.sendMessage(JSON.stringify({'action': 'get', 'link': `https://smotretanime.ru/api/episodes/${title.data[0].episodes[current_episode-1].id}`}), function(translations) {
-                console.log(translations.data.translations)
-                array[1].ep_num = current_episode
-                array[1].subtitles=[]
-                array[1].raw=[]
-                array[1].fandub=[]
-                for(let i = 0;i<translations.data.translations.length;i++){
-                    if(!translations.data.translations[i].authorsSummary) translations.data.translations[i].authorsSummary = 'Неизвестный'
-                    if(translations.data.translations[i].type=='subRu'){
-                        array[1].subtitles.push(['smotretanime.ru',translations.data.translations[i].embedUrl,translations.data.translations[i].authorsSummary])
-                    }else if(translations.data.translations[i].type=='raw'){
-                        array[1].raw.push(['smotretanime.ru',translations.data.translations[i].embedUrl,translations.data.translations[i].authorsSummary])
-                    }else if(translations.data.translations[i].type=='voiceRu'){
-                        array[1].fandub.push(['smotretanime.ru',translations.data.translations[i].embedUrl,translations.data.translations[i].authorsSummary])
+            chrome.runtime.sendMessage(JSON.stringify({
+                'action': 'get',
+                'link': `https://smotretanime.ru/api/episodes/${title.data[0].episodes[current_episode - 1].id}`
+            }), function (translations) {
+                console.log('translations:', translations.data.translations)
+                array.data[1].ep_num = current_episode
+                array.data[1].subtitles = []
+                array.data[1].raw = []
+                array.data[1].fandub = []
+                for (let i = 0; i < translations.data.translations.length; i++) {
+                    let t_url = smotretanime_domain_fix(translations.data.translations[i].embedUrl),
+                        summary = translations.data.translations[i].authorsSummary,
+                        type = translations.data.translations[i].type
+                    if (!summary) {
+                        summary = 'Неизвестный'
+                    }
+                    let t_arr = ['smotretanime.ru', t_url, summary]
+                    if (type == 'subRu') {
+                        array.data[1].subtitles.push(t_arr)
+                    } else if (type == 'raw') {
+                        array.data[1].raw.push(t_arr)
+                    } else if (type == 'voiceRu') {
+                        array.data[1].fandub.push(t_arr)
                     }
                 }
                 console.log(array)
@@ -654,10 +735,11 @@ function alternative_source(mal_title_id, current_episode){
 
     })
 }
-$(document).ready(function() {
-    chrome.runtime.onMessage.addListener(function(req, sender, sendResponse) {
+
+$(document).ready(function () {
+    chrome.runtime.onMessage.addListener(function (req, sender, sendResponse) {
         console.log('listener triggered!', req)
-        if(req.is_content_script) {
+        if (req.is_content_script) {
             start_content_script()
             sendResponse({is_content_script: true})
         }
