@@ -249,7 +249,7 @@ function start_content_script() {
                     console.log('SmotretanimeServer', data_second)
                     if (source == 'licensecrush') data = data_first
                     if (source == 'smotretanime') data = data_second
-                    if (!data_first.data[0].length) {
+                    if (data_first.data[0].length<data_second.data[0].length) {
                         data_first.data[0] = data_second.data[0]
                     }
                     console.log(data)
